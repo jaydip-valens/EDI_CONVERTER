@@ -21,9 +21,9 @@ public class EdiToCSVController {
     private EdiToCSVService ediToCSVService;
 
     @GetMapping("/edi846-to-csv")
-    public Object ediToCsv(@RequestParam(value = "ediFile")MultipartFile ediFile, HttpServletResponse response) {
+    public Object ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) {
         try {
-            if (ediFile.isEmpty() && !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()), "edi")) {
+            if (ediFile.isEmpty() || !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()), "edi")) {
                 return "invalid File";
             }
             Map<String, Object> result = ediToCSVService.fileRead(ediFile);
@@ -31,7 +31,7 @@ public class EdiToCSVController {
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + result.get("fileName") + "\"");
             CSVWriter writer = new CSVWriter(response.getWriter());
-            String[] header = {"Product Name","Cost","Quality","Vendor"};
+            String[] header = {"Product Name", "Cost", "Quality", "Vendor"};
             writer.writeNext(header);
             writer.writeAll((Iterable<String[]>) result.get("csvData"));
         } catch (Exception e) {
