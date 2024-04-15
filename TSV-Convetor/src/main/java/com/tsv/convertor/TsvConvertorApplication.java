@@ -45,11 +45,11 @@ public class TsvConvertorApplication implements CommandLineRunner {
             } else if (i == 5) {
                 String singleLine = dataLines.get(i);
                 String[] singleData = singleLine.split("\\*");
-                name = singleData[2].replaceAll("[^a-zA-Z0-9]", "_");
+                name = singleData[2].replaceAll("[^a-zA-Z0-9.]", "_");
                 break;
             }
         }
-        String fileName = name + receiverNumber;
+        String fileName = receiverNumber + "_" + name.replace(".","");
 //        System.out.println(fileName);
 
         StringBuilder tsv = new StringBuilder();
