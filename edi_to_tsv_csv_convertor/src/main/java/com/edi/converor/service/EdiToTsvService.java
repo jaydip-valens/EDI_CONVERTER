@@ -29,6 +29,7 @@ public class EdiToTsvService {
                     if (dataLine.startsWith("ISA")) {
                         String[] singleData = dataLine.split("\\*");
                         receiverNumber = singleData[8].trim();
+                        count++;
                     } else {
                         return null;
                     }
