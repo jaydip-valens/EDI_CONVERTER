@@ -20,14 +20,18 @@ public class EdiToCsvService {
         File csvFile = null;
         CSVWriter csvWriter = null;
         String[] csvRow = new String[4];
+        int count = 0;
         try (InputStream stream = ediFile.getInputStream(); Scanner scanner = new Scanner(stream)) {
             while (scanner.hasNext()) {
-//                System.out.println(scanner.next());
                 String dataLine = scanner.nextLine();
-
-                if (dataLine.startsWith("ISA")) {
-                    String[] singleData = dataLine.split("\\*");
-                    receiverNumber = singleData[8].trim();
+                if (count == 0) {
+                    if (dataLine.startsWith("ISA")) {
+                        String[] singleData = dataLine.split("\\*");
+                        receiverNumber = singleData[8].trim();
+                        count++;
+                    } else {
+                        return null;
+                    }
                 } else if (dataLine.startsWith("N1")) {
                     String[] singleData = dataLine.split("\\*");
                     name = singleData[2].replaceAll("[^a-zA-Z0-9.]", "_");
@@ -37,7 +41,7 @@ public class EdiToCsvService {
 
                     String csvFileName = fileName + ".csv";
                     csvFile = new File(csvFileName);
-                    try{
+                    try {
                         csvWriter = new CSVWriter(new FileWriter(csvFile));
                         String[] header = {"ProductCode", "ProductName", "Price", "Quantity"};
                         csvWriter.writeNext(header);
@@ -61,7 +65,6 @@ public class EdiToCsvService {
                         if (csvWriter != null) {
                             csvWriter.writeNext(csvRow);
                         }
-//                        System.out.println(Arrays.toString(csvRow));
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -71,7 +74,7 @@ public class EdiToCsvService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            if(csvWriter != null){
+            if (csvWriter != null) {
                 csvWriter.flush();
                 csvWriter.close();
             }

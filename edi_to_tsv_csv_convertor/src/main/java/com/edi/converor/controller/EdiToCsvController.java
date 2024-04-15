@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.util.Objects;
 
@@ -26,19 +25,23 @@ public class EdiToCsvController {
     @Autowired
     private EdiToCsvService ediToCsvService;
 
-    @PostMapping(value = "/to-csv",produces = "text/csv")
-    public ResponseEntity<Object> ediToCsv(@RequestPart(value = "ediFile") MultipartFile ediFile, HttpServletResponse response){
-        if(ediFile.isEmpty() || !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()),"edi")){
+    @PostMapping(value = "/to-csv", produces = "text/csv")
+    public ResponseEntity<Object> ediToCsv(@RequestPart(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) {
+        if (ediFile.isEmpty() || !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()), "edi")) {
             return new ResponseEntity<>("Invalid file, please try again", HttpStatus.BAD_REQUEST);
         }
         InputStreamResource csvFileData;
         byte[] fileContent;
-        try{
+        try {
             File csvFile = ediToCsvService.ediToCsv(ediFile);
-            response.setHeader(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + csvFile.getName() + "\"");
-            fileContent = Files.readAllBytes(csvFile.toPath());
-            Files.deleteIfExists(csvFile.toPath());
-        }catch(Exception e){
+            if (csvFile != null) {
+                response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + csvFile.getName() + "\"");
+                fileContent = Files.readAllBytes(csvFile.toPath());
+                Files.deleteIfExists(csvFile.toPath());
+            } else {
+                return new ResponseEntity<>("EDI file must have ISA Header.", HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>(fileContent, HttpStatus.OK);

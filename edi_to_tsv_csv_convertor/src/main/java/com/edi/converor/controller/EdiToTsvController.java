@@ -16,8 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 
 @RestController
@@ -27,7 +25,7 @@ public class EdiToTsvController {
     @Autowired
     private EdiToTsvService ediToTsvService;
 
-    @PostMapping(value = "/to-tsv",produces = "text/tsv")
+    @PostMapping(value = "/to-tsv", produces = "text/tsv")
     public ResponseEntity<Object> ediToCsv(@RequestPart(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) {
         if (ediFile.isEmpty() || !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()), "edi")) {
             return new ResponseEntity<>("Invalid file, please try again", HttpStatus.BAD_REQUEST);
@@ -35,11 +33,14 @@ public class EdiToTsvController {
         InputStreamResource tsvFileData;
         byte[] bytes;
         try {
-            File convertedFile = ediToTsvService.ediToCsv(ediFile);
-            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + convertedFile.getName() + "\"");
-            bytes = Files.readAllBytes(convertedFile.toPath());
-            Path path = Paths.get(convertedFile.getName());
-            Files.deleteIfExists(path);
+            File tsvFile = ediToTsvService.ediToCsv(ediFile);
+            if (tsvFile != null) {
+                response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + tsvFile.getName() + "\"");
+                bytes = Files.readAllBytes(tsvFile.toPath());
+                Files.deleteIfExists(tsvFile.toPath());
+            } else {
+                return new ResponseEntity<>("EDI file must have IAS Header.", HttpStatus.OK);
+            }
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

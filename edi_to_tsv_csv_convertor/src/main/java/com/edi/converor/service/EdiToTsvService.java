@@ -20,14 +20,18 @@ public class EdiToTsvService {
         StringBuilder tsvRow = new StringBuilder();
         File tsvFile = null;
         FileWriter tsvWriter = null;
-        try(InputStream stream = ediFile.getInputStream();Scanner scanner = new Scanner(stream)) {
+        int count = 0;
+        try (InputStream stream = ediFile.getInputStream(); Scanner scanner = new Scanner(stream)) {
 
             while (scanner.hasNext()) {
                 String dataLine = scanner.nextLine();
-
-                if (dataLine.startsWith("ISA")) {
-                    String[] singleData = dataLine.split("\\*");
-                    receiverNumber = singleData[8].trim();
+                if (count == 0) {
+                    if (dataLine.startsWith("ISA")) {
+                        String[] singleData = dataLine.split("\\*");
+                        receiverNumber = singleData[8].trim();
+                    } else {
+                        return null;
+                    }
                 } else if (dataLine.startsWith("N1")) {
                     String[] singleData = dataLine.split("\\*");
                     name = singleData[2].replaceAll("[^a-zA-Z0-9.]", "_");
@@ -58,10 +62,9 @@ public class EdiToTsvService {
                     } else if (dataLine.startsWith("QTY*")) {
                         String[] singleData = dataLine.split("\\*");
                         tsvRow.append(singleData[singleData.length - 2].trim());
-                        if(tsvWriter != null) {
+                        if (tsvWriter != null) {
                             tsvWriter.write(String.valueOf(tsvRow));
                         }
-//                        System.out.println(tsvRow);
                         tsvRow.delete(0, tsvRow.length());
                     }
                 } catch (Exception e) {
@@ -69,10 +72,10 @@ public class EdiToTsvService {
                 }
             }
             return tsvFile;
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }finally {
-            if(tsvWriter != null){
+        } finally {
+            if (tsvWriter != null) {
                 tsvWriter.flush();
                 tsvWriter.close();
             }
