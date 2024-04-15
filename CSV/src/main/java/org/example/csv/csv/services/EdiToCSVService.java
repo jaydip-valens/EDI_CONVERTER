@@ -29,16 +29,16 @@ public class EdiToCSVService {
                     String[] header = {"Product Name", "Cost", "Quality", "Vendor"};
                     writer.writeNext(header);
                 }
-                if (data.contains("ISA")) {
+                if (data.startsWith("ISA*")) {
                     receiverId = data.split("\\*")[8].trim();
-                } else if (data.contains("N1")) {
+                } else if (data.startsWith("N1*")) {
                     String[] temp = data.split("\\*");
                     vendorName = temp[temp.length - 1].replace(" ", "_").replaceAll("[^a-zA-Z0-9_]", "");
-                } else if (data.contains("LIN")) {
+                } else if (data.startsWith("LIN*")) {
                     count++;
                     String[] temp = data.split("\\*");
                     tempCsvDataArray[3] = temp[temp.length - 1];
-                } else if (data.startsWith("PID*") && data.contains("08")) {
+                } else if (data.startsWith("PID*F*08")) {
                     String[] temp = data.split("\\*");
                     tempCsvDataArray[0] = temp[temp.length - 1].trim();
                 } else if (data.startsWith("CTP*")) {
