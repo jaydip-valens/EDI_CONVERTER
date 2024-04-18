@@ -1,19 +1,20 @@
-package org.example.csv.csv.services;
+package org.example.csv.csv.services.Implimentation;
 
 
-import com.opencsv.CSVWriter;
+import org.example.csv.csv.services.EdiToTSVServices;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 
 @Service
-public class EdiToCSVService {
+public class EdiToTSVServiceImplementation implements EdiToTSVServices {
 
-    public File ediToCSVConvertor(MultipartFile ediFile) throws IOException {
-        CSVWriter writer = null;
+    public File ediToTSVConvertor(MultipartFile ediFile) throws IOException {
+        Writer writer = null;
         try {
             String content = new String(ediFile.getBytes());
             String[] contentList = content.split("\n");
@@ -24,10 +25,10 @@ public class EdiToCSVService {
             String[] tempCsvDataArray = new String[4];
             for (String data : contentList) {
                 if (!receiverId.isBlank() && !vendorName.isBlank() && count == 0) {
-                    fileName = receiverId + "_" + vendorName + ".csv";
-                    writer = new CSVWriter(new FileWriter(fileName));
+                    fileName = receiverId + "_" + vendorName + ".tsv";
+                    writer = new FileWriter(fileName);
                     String[] header = {"Product Name", "Cost", "Quality", "Vendor"};
-                    writer.writeNext(header);
+                    writer.write(String.join("\t", header) + "\n");
                 }
                 if (data.startsWith("ISA*")) {
                     receiverId = data.split("\\*")[8].trim();
@@ -47,7 +48,7 @@ public class EdiToCSVService {
                 } else if (data.startsWith("QTY*")) {
                     String[] temp = data.split("\\*");
                     tempCsvDataArray[2] = temp[1];
-                    writer.writeNext(tempCsvDataArray);
+                    writer.write(String.join("\t", tempCsvDataArray)+ "\n");
                 }
             }
             return new File(fileName);

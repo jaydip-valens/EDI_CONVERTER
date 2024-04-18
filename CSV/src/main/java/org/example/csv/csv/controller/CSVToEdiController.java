@@ -1,9 +1,10 @@
 package org.example.csv.csv.controller;
 
+
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.example.csv.csv.services.Implimentation.EdiToTSVServiceImplementation;
+import org.example.csv.csv.services.Implimentation.CSVToEdiServiceImplementation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,19 +20,19 @@ import java.nio.file.Files;
 import java.util.Objects;
 
 @RestController
-public class EdiToTSVController {
+public class CSVToEdiController {
 
     @Autowired
-    private EdiToTSVServiceImplementation ediToTSVServiceImplementation;
+    private CSVToEdiServiceImplementation csvToEdiServiceImplementation;
 
-    @GetMapping(value = "/edi846-to-tsv" , produces = "text/csv")
-    public ResponseEntity<Object> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) throws IOException {
+    @GetMapping(value = "/csv-to-edi846" , produces = "text/edi")
+    public ResponseEntity<Object> csvToEdi(@RequestParam(value = "csvFile" )MultipartFile csvFile, HttpServletResponse response) throws IOException {
         File responseFile = null;
         try {
-            if (ediFile.isEmpty() && !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()), "edi")) {
+            if (csvFile.isEmpty() || !Objects.equals(FilenameUtils.getExtension(csvFile.getOriginalFilename()), "csv")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid File");
             }
-            responseFile = ediToTSVServiceImplementation.ediToTSVConvertor(ediFile);
+            responseFile = csvToEdiServiceImplementation.csvToEdiConverter(csvFile);
             byte[] responseFileByte = Files.readAllBytes(responseFile.toPath());
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + responseFile.getName() + "\"");
@@ -41,6 +42,7 @@ public class EdiToTSVController {
         } finally {
             if (responseFile != null) {
                 FileUtils.delete(responseFile);
+                FileUtils.delete(new File(csvFile.getOriginalFilename()));
             }
         }
     }

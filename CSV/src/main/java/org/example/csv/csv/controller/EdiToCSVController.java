@@ -3,7 +3,7 @@ package org.example.csv.csv.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.example.csv.csv.services.EdiToCSVService;
+import org.example.csv.csv.services.Implimentation.EdiToCSVServiceImplementation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,7 +22,7 @@ import java.util.Objects;
 public class EdiToCSVController {
 
     @Autowired
-    private EdiToCSVService ediToCSVService;
+    private EdiToCSVServiceImplementation ediToCSVServiceImplementation;
 
     @GetMapping(value = "/edi846-to-csv" , produces = "text/csv")
     public ResponseEntity<Object> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) throws IOException {
@@ -31,7 +31,7 @@ public class EdiToCSVController {
             if (ediFile.isEmpty() && !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()), "edi")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid File");
             }
-            responseFile = ediToCSVService.ediToCSVConvertor(ediFile);
+            responseFile = ediToCSVServiceImplementation.ediToCSVConvertor(ediFile);
             byte[] responseFileByte = Files.readAllBytes(responseFile.toPath());
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + responseFile.getName() + "\"");

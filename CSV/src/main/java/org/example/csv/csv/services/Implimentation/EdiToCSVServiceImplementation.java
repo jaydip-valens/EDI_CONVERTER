@@ -1,21 +1,21 @@
-package org.example.csv.csv.services;
+package org.example.csv.csv.services.Implimentation;
 
 
 import com.opencsv.CSVWriter;
+import org.example.csv.csv.services.EdiToCSVServices;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Arrays;
 
 @Service
-public class EdiToTSVService {
+public class EdiToCSVServiceImplementation implements EdiToCSVServices {
 
-    public File ediToTSVConvertor(MultipartFile ediFile) throws IOException {
-        Writer writer = null;
+    public File ediToCSVConvertor(MultipartFile ediFile) throws IOException {
+        CSVWriter writer = null;
         try {
             String content = new String(ediFile.getBytes());
             String[] contentList = content.split("\n");
@@ -26,10 +26,10 @@ public class EdiToTSVService {
             String[] tempCsvDataArray = new String[4];
             for (String data : contentList) {
                 if (!receiverId.isBlank() && !vendorName.isBlank() && count == 0) {
-                    fileName = receiverId + "_" + vendorName + ".tsv";
-                    writer = new FileWriter(fileName);
+                    fileName = receiverId + "_" + vendorName + ".csv";
+                    writer = new CSVWriter(new FileWriter(fileName));
                     String[] header = {"Product Name", "Cost", "Quality", "Vendor"};
-                    writer.write(String.join("\t", header) + "\n");
+                    writer.writeNext(header);
                 }
                 if (data.startsWith("ISA*")) {
                     receiverId = data.split("\\*")[8].trim();
@@ -45,11 +45,11 @@ public class EdiToTSVService {
                     tempCsvDataArray[0] = temp[temp.length - 1].trim();
                 } else if (data.startsWith("CTP*")) {
                     String[] temp = data.split("\\*");
-                    tempCsvDataArray[1] = temp[temp.length - 1];
+                    tempCsvDataArray[1] = temp.length < 4 ? "" : temp[temp.length -1];
                 } else if (data.startsWith("QTY*")) {
                     String[] temp = data.split("\\*");
                     tempCsvDataArray[2] = temp[1];
-                    writer.write(String.join("\t", tempCsvDataArray)+ "\n");
+                    writer.writeNext(tempCsvDataArray);
                 }
             }
             return new File(fileName);
