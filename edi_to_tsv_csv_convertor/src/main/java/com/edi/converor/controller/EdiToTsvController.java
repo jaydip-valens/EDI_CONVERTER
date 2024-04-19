@@ -30,7 +30,6 @@ public class EdiToTsvController {
         if (ediFile.isEmpty() || !Objects.equals(FilenameUtils.getExtension(ediFile.getOriginalFilename()), "edi")) {
             return new ResponseEntity<>("Invalid file, please try again", HttpStatus.BAD_REQUEST);
         }
-        InputStreamResource tsvFileData;
         byte[] bytes;
         try {
             File tsvFile = ediToTsvService.ediToCsv(ediFile);

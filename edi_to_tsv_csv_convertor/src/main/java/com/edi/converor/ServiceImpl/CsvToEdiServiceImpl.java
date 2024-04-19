@@ -1,6 +1,7 @@
 package com.edi.converor.ServiceImpl;
 
 import com.edi.converor.domain.YAMLConfig;
+import com.edi.converor.exception.CustomRuntimeException;
 import com.edi.converor.service.CsvToEdiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,7 +53,6 @@ public class CsvToEdiServiceImpl implements CsvToEdiService {
         supplierName = supplierName + ".edi";
         File ediFile =new File(supplierName);
 
-//        CSVReader csvReader = new CSVReader(new FileReader(csvFile.getOriginalFilename()));
         try(InputStream stream = csvFile.getInputStream(); Scanner scanner = new Scanner(stream); FileWriter ediWriter = new FileWriter(ediFile))  {
             ediWriter.write(isaSegmentValue+"\n"+gsSegmentValue+"\n"+stSegmentValue+"\n"+biaSegmentValue+"\n"+refSegmentValue+"\n"+n1SegmentValue+"\n");
             scanner.nextLine();
@@ -71,8 +71,7 @@ public class CsvToEdiServiceImpl implements CsvToEdiService {
             }
             ediWriter.write(cttSegmentValue+"\n"+seSegmentValue+"\n"+geSegmentValue+"\n"+ieaSegmentValue);
         } catch(Exception e){
-            System.out.println(e.getMessage());
-            throw new RuntimeException();
+            throw new CustomRuntimeException();
         }
         return ediFile;
     }

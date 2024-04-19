@@ -1,6 +1,8 @@
 package com.edi.converor.controller;
 
 import com.edi.converor.ServiceImpl.CsvToEdiServiceImpl;
+import com.edi.converor.exception.CustomIOException;
+import com.edi.converor.exception.CustomRuntimeException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Objects;
 
@@ -25,9 +28,9 @@ public class CsvToEdiController {
     private CsvToEdiServiceImpl csvToEdiServiceImpl;
 
     @PostMapping(value = "/to-edi", produces = "text/edi")
-    public ResponseEntity<Object> csvToEdi(@RequestPart(value = "csvFile") MultipartFile csvFile, HttpServletResponse response) {
+    public ResponseEntity<Object> csvToEdi(@RequestPart(value = "csvFile") MultipartFile csvFile, HttpServletResponse response) throws IOException {
         if (csvFile.isEmpty() || !Objects.equals(FilenameUtils.getExtension(csvFile.getOriginalFilename()), "csv")) {
-            return new ResponseEntity<>("Invalid file, please try again", HttpStatus.BAD_REQUEST);
+            throw new CustomIOException();
         }
         byte[] fileContent;
         try {
@@ -35,9 +38,10 @@ public class CsvToEdiController {
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + ediFile.getName() + "\"");
             fileContent = Files.readAllBytes(ediFile.toPath());
             Files.deleteIfExists(ediFile.toPath());
+        } catch (CustomIOException e) {
+            throw new CustomIOException();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new CustomRuntimeException();
         }
         return new ResponseEntity<>(fileContent, HttpStatus.OK);
     }
