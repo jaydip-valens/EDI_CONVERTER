@@ -1,9 +1,10 @@
 package org.example.csv.csv.services.Implimentation;
 
 import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.example.csv.csv.domain.EDIConfigurationValues;
+import org.example.csv.csv.exceptionHandler.InternalServerException;
+import org.example.csv.csv.exceptionHandler.InvalidFileException;
 import org.example.csv.csv.services.CSVToEdiServices;
 import org.example.csv.csv.utils.Util;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import static org.example.csv.csv.utils.Util.validateFile;
+
 @Service
 public class CSVToEdiServiceImplementation implements CSVToEdiServices {
 
@@ -27,10 +30,12 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
     @Autowired
     private Util util;
 
+
     public File csvToEdiConverter(MultipartFile csvFile) throws IOException {
         FileWriter writer = null;
         CSVReader reader = null;
         try {
+            validateFile(csvFile, "csv");
             LocalDateTime DateTime = LocalDateTime.now();
             int linCount = 0;
             int segmentCount = 0;
@@ -193,13 +198,15 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
             segmentData.clear();
 
             return new File(fileName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (InvalidFileException e) {
+            throw new InvalidFileException();
+        } catch (Exception e) {
+            throw new InternalServerException();
         } finally {
-           if (writer != null && reader != null) {
-               writer.close();
-               reader.close();
-           }
+            if (writer != null && reader != null) {
+                writer.close();
+                reader.close();
+            }
         }
     }
 

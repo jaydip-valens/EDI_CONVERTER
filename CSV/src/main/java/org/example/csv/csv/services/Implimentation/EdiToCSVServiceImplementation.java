@@ -2,6 +2,8 @@ package org.example.csv.csv.services.Implimentation;
 
 
 import com.opencsv.CSVWriter;
+import org.example.csv.csv.exceptionHandler.InternalServerException;
+import org.example.csv.csv.exceptionHandler.InvalidFileException;
 import org.example.csv.csv.services.EdiToCSVServices;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,7 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
+
+import static org.example.csv.csv.utils.Util.validateFile;
 
 @Service
 public class EdiToCSVServiceImplementation implements EdiToCSVServices {
@@ -17,6 +20,7 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
     public File ediToCSVConvertor(MultipartFile ediFile) throws IOException {
         CSVWriter writer = null;
         try {
+            validateFile(ediFile, "edi");
             String content = new String(ediFile.getBytes());
             String[] contentList = content.split("\n");
             String receiverId = "";
@@ -45,7 +49,7 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
                     tempCsvDataArray[0] = temp[temp.length - 1].trim();
                 } else if (data.startsWith("CTP*")) {
                     String[] temp = data.split("\\*");
-                    tempCsvDataArray[1] = temp.length < 4 ? "" : temp[temp.length -1];
+                    tempCsvDataArray[1] = temp.length < 4 ? "" : temp[temp.length - 1];
                 } else if (data.startsWith("QTY*")) {
                     String[] temp = data.split("\\*");
                     tempCsvDataArray[2] = temp[1];
@@ -53,8 +57,10 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
                 }
             }
             return new File(fileName);
+        } catch (InvalidFileException e) {
+            throw new InvalidFileException();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new InternalServerException();
         } finally {
             if (writer != null) {
                 writer.close();
