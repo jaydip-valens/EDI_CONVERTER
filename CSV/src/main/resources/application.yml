@@ -32,7 +32,7 @@ edi:
 
   ctpPriceIdentifierCode : DIS
 
-  qtyTotalQuantity : 50
+  qtyQuantityQualifier : 17
   qtyMeasurementCode : EA
 
   dtmDateTimeQualifier : "018"

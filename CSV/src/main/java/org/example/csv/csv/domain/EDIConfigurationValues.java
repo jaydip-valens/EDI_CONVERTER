@@ -34,7 +34,7 @@ public class EDIConfigurationValues {
 
     private String ctpPriceIdentifierCode;
 
-    private String qtyTotalQuantity;
+    private String qtyQuantityQualifier;
 
     private String qtyMeasurementCode;
 
@@ -170,12 +170,12 @@ public class EDIConfigurationValues {
         this.ctpPriceIdentifierCode = ctpPriceIdentifierCode;
     }
 
-    public String getQtyTotalQuantity() {
-        return qtyTotalQuantity;
+    public String getQtyQuantityQualifier() {
+        return qtyQuantityQualifier;
     }
 
-    public void setQtyTotalQuantity(String qtyTotalQuantity) {
-        this.qtyTotalQuantity = qtyTotalQuantity;
+    public void setQtyQuantityQualifier(String qtyQuantityQualifier) {
+        this.qtyQuantityQualifier = qtyQuantityQualifier;
     }
 
     public String getQtyMeasurementCode() {

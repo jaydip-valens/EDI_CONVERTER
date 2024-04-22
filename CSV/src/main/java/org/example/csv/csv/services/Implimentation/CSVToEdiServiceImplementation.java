@@ -3,7 +3,6 @@ package org.example.csv.csv.services.Implimentation;
 import com.opencsv.CSVReader;
 import org.apache.commons.lang3.ArrayUtils;
 import org.example.csv.csv.domain.EDIConfigurationValues;
-import org.example.csv.csv.exceptionHandler.InternalServerException;
 import org.example.csv.csv.exceptionHandler.InvalidFileException;
 import org.example.csv.csv.services.CSVToEdiServices;
 import org.example.csv.csv.utils.Util;
@@ -71,7 +70,6 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
             segmentData.add("~");
             String ISA = String.join("*", segmentData);
             writer.write(ISA + "\n");
-            System.out.println(ISA);
             segmentData.clear();
 
             segmentData.add("GS*IB");
@@ -110,58 +108,57 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
 
             segmentData.add("N1");
             segmentData.add(ediConfigurationValues.getN1EntityIdentifierCode());
-            segmentData.add(vendorName);
+            segmentData.add(vendorName.isBlank() ? ediConfigurationValues.getReceiverId() : vendorName);
             String N1 = String.join("*", segmentData);
             writer.write(N1 + "\n");
             segmentData.clear();
+            List<String> segmentNames = new ArrayList<>(Arrays.asList(csvData.get(0)));
             csvData.remove(0);
             for (String[] data : csvData) {
-                System.out.println(Arrays.toString(data));
-                Random random = new Random();
-                long randomValue = random.nextLong(1000000000000L);
-                linCount++;
-                segmentCount++;
-                segmentData.add("LIN*");
-                segmentData.add(ediConfigurationValues.getLinProductServiceIDQualifier());
-                segmentData.add(String.valueOf(randomValue));
-                segmentData.add("*");
-                segmentData.add(ediConfigurationValues.getLinProductServiceIDQualifierSecond());
-                segmentData.add(data[data.length - 1]);
-                String LIN = String.join("*", segmentData);
-                writer.write(LIN + "\n");
-                segmentData.clear();
-
-                segmentData.add("PID*F");
-                segmentData.add("08");
-                segmentData.add("*");
-                segmentData.add(data[0]);
-                segmentCount++;
-                String PID = String.join("*", segmentData);
-                writer.write(PID + "\n");
-
-                segmentData.set(1, "75");
-                segmentCount++;
-                PID = String.join("*", segmentData);
-                writer.write(PID + "\n");
-                segmentData.clear();
-
-                segmentData.add("CTP*");
-                segmentData.add(ediConfigurationValues.getCtpPriceIdentifierCode());
-                segmentData.add(data[1]);
-                segmentCount++;
-                String CTP = String.join("*", segmentData);
-                writer.write(CTP + "\n");
-                segmentData.clear();
-
-                segmentData.add("QTY");
-                segmentData.add(data[2]);
-                segmentData.add(ediConfigurationValues.getQtyTotalQuantity());
-                segmentData.add(ediConfigurationValues.getQtyMeasurementCode());
-                segmentCount++;
-                String QTY = String.join("*", segmentData);
-                writer.write(QTY + "\n");
-                segmentData.clear();
-
+                if (segmentNames.contains("vendor")) {
+                    Random random = new Random();
+                    long randomValue = random.nextLong(1000000000000L);
+                    linCount++;
+                    segmentCount++;
+                    segmentData.add("LIN*");
+                    segmentData.add(ediConfigurationValues.getLinProductServiceIDQualifier());
+                    segmentData.add(String.valueOf(randomValue));
+                    segmentData.add("*");
+                    segmentData.add(ediConfigurationValues.getLinProductServiceIDQualifierSecond());
+                    segmentData.add(data[segmentNames.indexOf("vendor")]);
+                    String LIN = String.join("*", segmentData);
+                    writer.write(LIN + "\n");
+                    segmentData.clear();
+                }
+                if (segmentNames.contains("Product Name")) {
+                    segmentData.add("PID*F");
+                    segmentData.add("08");
+                    segmentData.add("*");
+                    segmentData.add(data[segmentNames.indexOf("Product Name")]);
+                    segmentCount++;
+                    String PID = String.join("*", segmentData);
+                    writer.write(PID + "\n");
+                    segmentData.clear();
+                }
+                if (segmentNames.contains("Cost")) {
+                    segmentData.add("CTP*");
+                    segmentData.add(ediConfigurationValues.getCtpPriceIdentifierCode());
+                    segmentData.add(data[segmentNames.indexOf("Cost")]);
+                    segmentCount++;
+                    String CTP = String.join("*", segmentData);
+                    writer.write(CTP + "\n");
+                    segmentData.clear();
+                }
+                if (segmentNames.contains("Quantity")) {
+                    segmentData.add("QTY");
+                    segmentData.add(ediConfigurationValues.getQtyQuantityQualifier());
+                    segmentData.add(data[segmentNames.indexOf("Quantity")]);
+                    segmentData.add(ediConfigurationValues.getQtyMeasurementCode());
+                    segmentCount++;
+                    String QTY = String.join("*", segmentData);
+                    writer.write(QTY + "\n");
+                    segmentData.clear();
+                }
                 segmentData.add("DTM");
                 segmentData.add(ediConfigurationValues.getDtmDateTimeQualifier());
                 segmentData.add(DateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
@@ -201,7 +198,7 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
         } catch (InvalidFileException e) {
             throw new InvalidFileException();
         } catch (Exception e) {
-            throw new InternalServerException();
+            throw new RuntimeException(e);
         } finally {
             if (writer != null && reader != null) {
                 writer.close();

@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 
 @RestController
 public class EdiToCSVController {
@@ -35,8 +36,8 @@ public class EdiToCSVController {
             return ResponseEntity.status(HttpStatus.OK).body(responseFileByte);
         } catch (InvalidFileException e) {
             throw new InvalidFileException();
-        } catch (InternalServerException e) {
-            throw new InternalServerException();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         } finally {
             if (responseFile != null) {
                 FileUtils.delete(responseFile);

@@ -37,7 +37,7 @@ public class CSVToEdiController {
         } catch (InvalidFileException e) {
             throw new InvalidFileException();
         } catch (InternalServerException e) {
-            throw new InternalServerException();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         } finally {
             if (responseFile != null) {
                 FileUtils.delete(responseFile);
