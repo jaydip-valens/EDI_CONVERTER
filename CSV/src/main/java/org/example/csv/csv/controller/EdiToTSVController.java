@@ -2,9 +2,7 @@ package org.example.csv.csv.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
-import org.example.csv.csv.exceptionHandler.InternalServerException;
-import org.example.csv.csv.exceptionHandler.InvalidFileException;
-import org.example.csv.csv.services.Implimentation.EdiToTSVServiceImplementation;
+import org.example.csv.csv.services.EdiToTSVServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,25 +20,20 @@ import java.nio.file.Files;
 public class EdiToTSVController {
 
     @Autowired
-    private EdiToTSVServiceImplementation ediToTSVServiceImplementation;
+    private EdiToTSVServices ediToTSVServices;
 
     @GetMapping(value = "/edi846-to-tsv", produces = "text/csv")
-    public ResponseEntity<Object> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) throws IOException {
-        File responseFile = null;
+    public ResponseEntity<Object> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) {
+        File responseFile;
         try {
-            responseFile = ediToTSVServiceImplementation.ediToTSVConvertor(ediFile);
+            responseFile = ediToTSVServices.ediToTSVConvertor(ediFile);
             byte[] responseFileByte = Files.readAllBytes(responseFile.toPath());
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + responseFile.getName() + "\"");
+            FileUtils.delete(responseFile);
             return ResponseEntity.status(HttpStatus.OK).body(responseFileByte);
-        } catch (InvalidFileException e) {
-            throw new InvalidFileException();
-        } catch (InternalServerException e) {
-            throw new InternalServerException();
-        } finally {
-            if (responseFile != null) {
-                FileUtils.delete(responseFile);
-            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 }
