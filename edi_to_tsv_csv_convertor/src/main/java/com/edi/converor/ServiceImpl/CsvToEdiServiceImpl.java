@@ -43,7 +43,7 @@ public class CsvToEdiServiceImpl implements CsvToEdiService {
         String stSegmentValue = "ST*"+yamlConfig.getTransactionIdentifierCode()+"*"+yamlConfig.getTransactionSetControlNumber();
         String biaSegmentValue = "BIA*"+yamlConfig.getTransactionSetPurposeCode()+"*"+yamlConfig.getReportTypeCode()+"*"+yamlConfig.getBiaReferenceIdentification()+"*20190417";
         String refSegmentValue = "REF*"+yamlConfig.getReferenceIdentificationQualifier()+"*"+yamlConfig.getReferenceIdentification();
-        String n1SegmentValue = "N1*"+yamlConfig.getEntityIdentifierCode()+"*"+supplierName;
+        String n1SegmentValue = "N1*"+yamlConfig.getEntityIdentifierCode()+"*";
 
         String cttSegmentValue = "CTT*"+yamlConfig.getTransactionTotal();
         String seSegmentValue = "SE*"+yamlConfig.getNumberOfIncludedSegments()+"*"+yamlConfig.getTransactionSetControl();
@@ -61,11 +61,11 @@ public class CsvToEdiServiceImpl implements CsvToEdiService {
                 long productId = rand.nextLong(100000000000L,999999999999L);
                 String data = scanner.nextLine();
                 String[] itemDetails = data.split(",");
-                String linSegmentValue = "LIN**" + yamlConfig.getProductIdQualifier() + productId + "***" + yamlConfig.getProductIdQualifierForVendor() + "*" + itemDetails[0];
-                String pidProductSegmentValue = "PID*" + yamlConfig.getItemDescriptionType() + "*" + yamlConfig.getProductCharacteristicCode() + "***" + itemDetails[1];
-                String pidColorSegmentValue = "PID*" + yamlConfig.getItemDescriptionType() + "*" + yamlConfig.getProductCharacteristicCodeForBuyer() + "***" + itemDetails[1];
-                String ctpSegmentValue = "CTP**" + yamlConfig.getPriceIdentifyingCode() + "*" + itemDetails[2];
-                String qtySegmentValue = "QTY*" + yamlConfig.getQuantityQualifier() + "*" + itemDetails[3] + "*" + yamlConfig.getUnitCode();
+                String linSegmentValue = "LIN**" + yamlConfig.getProductIdQualifier() + "*" + productId + "***" + yamlConfig.getProductIdQualifierForVendor() + "*" + itemDetails[0].replaceAll("\"","");
+                String pidProductSegmentValue = "PID*" + yamlConfig.getItemDescriptionType() + "*" + yamlConfig.getProductCharacteristicCode() + "***" + itemDetails[1].replaceAll("\"","");
+                String pidColorSegmentValue = "PID*" + yamlConfig.getItemDescriptionType() + "*" + yamlConfig.getProductCharacteristicCodeForBuyer() + "***" + itemDetails[1].replaceAll("\"","");
+                String ctpSegmentValue = "CTP**" + yamlConfig.getPriceIdentifyingCode() + "*" + itemDetails[2].replaceAll("\"","");
+                String qtySegmentValue = "QTY*" + yamlConfig.getQuantityQualifier() + "*" + itemDetails[3].replaceAll("\"","") + "*" + yamlConfig.getUnitCode();
                 String dtmSegmentValue = "DTM*" + yamlConfig.getDateTimeQualifier() + "*" + date;
                 ediWriter.write(linSegmentValue+"\n"+pidProductSegmentValue+"\n"+pidColorSegmentValue+"\n"+ctpSegmentValue+"\n"+qtySegmentValue+"\n"+dtmSegmentValue+"\n");
             }
