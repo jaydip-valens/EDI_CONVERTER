@@ -14,8 +14,8 @@ public class GlobalExceptionHandler {
             return new ResponseEntity<>("Internal error.",HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(CustomIOException.class)
+    @ExceptionHandler(InvalidFileException.class)
     public ResponseEntity<String> CustomIOException(){
-        return new ResponseEntity<>("Invalid file, please try again.",HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("File is empty, Please try again.",HttpStatus.BAD_REQUEST);
     }
 }

@@ -1,4 +1,8 @@
-edi:
+  spring :
+    application:
+      name : edi_to_tsv_csv_convertor
+
+  edi:
   senderId: 108973090
   receiverId: 2123867180
   standardsIdentifier: U

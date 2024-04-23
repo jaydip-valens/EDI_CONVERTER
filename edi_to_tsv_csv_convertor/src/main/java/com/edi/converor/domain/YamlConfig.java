@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "edi")
-public class YAMLConfig {
+public class YamlConfig {
 
     private String senderId;
     private String receiverId;
