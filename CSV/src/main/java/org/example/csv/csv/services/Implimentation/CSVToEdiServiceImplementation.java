@@ -41,45 +41,47 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
             FileOutputStream fileOutputStream = new FileOutputStream(csvFile.getOriginalFilename());
             fileOutputStream.write(csvFile.getBytes());
             fileOutputStream.close();
-            CSVReader reader = new CSVReader(new FileReader(csvFile.getOriginalFilename()));
-            List<String[]> csvData = reader.readAll();
-            String[] nameArray = ((csvFile.getOriginalFilename().split("[._]")));
-            String vendorName = String.join(" ", ArrayUtils.removeAll(nameArray, 0, nameArray.length - 1));
-            String fileName = ediConfigurationValues.getReceiverId() + "_" + vendorName.replace(" ", "_") + ".edi";
-
-            try (FileWriter writer = new FileWriter(fileName)) {
-                List<String> segmentData = new ArrayList<>();
-                isaSegmentWriter(segmentData, DateTime, writer);
-                gsSegmentWriter(segmentData, DateTime, writer);
-                stSegmentWriter(segmentData, writer);
-                biaSegmentWriter(segmentData, DateTime, writer);
-                refSegmentWriter(segmentData, writer);
-                n1SegmentWriter(segmentData, vendorName, writer);
-                List<String> segmentNames = new ArrayList<>(Arrays.asList(csvData.get(0)));
-                csvData.remove(0);
-                for (String[] data : csvData) {
-                    if (segmentNames.contains("vendor")) {
-                        long randomValue = random.nextLong(1000000000000L);
-                        linCount++;
-                        segmentCount++;
-                        linSegmentWriter(data, segmentData, randomValue, segmentNames, writer);
+            try (CSVReader reader = new CSVReader(new FileReader(csvFile.getOriginalFilename()))) {
+                List<String[]> csvData = reader.readAll();
+                String[] nameArray = ((csvFile.getOriginalFilename().split("[._]")));
+                String vendorName = String.join(" ", ArrayUtils.removeAll(nameArray, 0, nameArray.length - 1));
+                String fileName = ediConfigurationValues.getReceiverId() + "_" + vendorName.replace(" ", "_") + ".edi";
+                try (FileWriter writer = new FileWriter(fileName)) {
+                    List<String> segmentData = new ArrayList<>();
+                    isaSegmentWriter(segmentData, DateTime, writer);
+                    gsSegmentWriter(segmentData, DateTime, writer);
+                    stSegmentWriter(segmentData, writer);
+                    biaSegmentWriter(segmentData, DateTime, writer);
+                    refSegmentWriter(segmentData, writer);
+                    n1SegmentWriter(segmentData, vendorName, writer);
+                    List<String> segmentNames = new ArrayList<>(Arrays.asList(csvData.get(0)));
+                    csvData.remove(0);
+                    for (String[] data : csvData) {
+                        if (segmentNames.contains("Vendor")) {
+                            long randomValue = random.nextLong(1000000000000L);
+                            linCount++;
+                            segmentCount++;
+                            linSegmentWriter(data, segmentData, randomValue, segmentNames, writer);
+                        }
+                        if (segmentNames.contains("Product Name")) {
+                            segmentCount = pidSegmentWriter(data, segmentData, segmentNames, segmentCount, writer);
+                        }
+                        if (segmentNames.contains("Cost")) {
+                            segmentCount = ctpSegmentWriter(data, segmentData, segmentNames, segmentCount, writer);
+                        }
+                        if (segmentNames.contains("Quantity")) {
+                            segmentCount = qtySegmentWriter(data, segmentData, segmentNames, segmentCount, writer);
+                        }
+                        segmentCount = dtmSegmentWriter(segmentData, DateTime, segmentCount, writer);
                     }
-                    if (segmentNames.contains("Product Name")) {
-                        segmentCount = pidSegmentWriter(data, segmentData, segmentNames, segmentCount, writer);
-                    }
-                    if (segmentNames.contains("Cost")) {
-                        segmentCount = ctpSegmentWriter(data, segmentData, segmentNames, segmentCount, writer);
-                    }
-                    if (segmentNames.contains("Quantity")) {
-                        segmentCount = qtySegmentWriter(data, segmentData, segmentNames, segmentCount, writer);
-                    }
-                    segmentCount = dtmSegmentWriter(segmentData, DateTime, segmentCount, writer);
+                    cttSegmentWriter(segmentData, linCount, writer);
+                    seSegmentWriter(segmentData, segmentCount, writer);
+                    geSegmentWriter(segmentData, writer);
+                    ieaSegmentWriter(segmentData, writer);
+                } catch (Exception e) {
+                    logger.error("Error occurred during CSV to EDI conversion.", e);
+                    throw new RuntimeException(e);
                 }
-                cttSegmentWriter(segmentData, linCount, writer);
-                seSegmentWriter(segmentData, segmentCount, writer);
-                geSegmentWriter(segmentData, writer);
-                ieaSegmentWriter(segmentData, writer);
-                reader.close();
                 logger.info("CSV to EDI conversion completed successfully.");
                 return new File(fileName);
             } catch (IOException e) {

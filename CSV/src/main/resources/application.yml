@@ -36,3 +36,17 @@ edi:
   qtyMeasurementCode : EA
 
   dtmDateTimeQualifier : "018"
+
+spring:
+  datasource:
+    name: edi_management_parser
+    username: postgres
+    password: root
+    url: jdbc:postgresql://localhost:5432/edi_management_parser
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log : db/changelog/master-changelog.xml
+  jooq:
+    sql-dialect: org.hibernate.dialect.PostgreSQLDialect
+
+
