@@ -1,15 +1,15 @@
-package com.edi.converor.service.ServiceImpl;
+package org.example.csv.csv.services.Implimentation.ridham_implimentation;
 
-import com.edi.converor.service.EdiToCsvService;
+import org.example.csv.csv.services.ridham_service.EdiToCsvService;
 import com.opencsv.CSVWriter;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.nio.channels.FileChannel;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 @Service
 public class EdiToCsvServiceImpl implements EdiToCsvService {
@@ -17,36 +17,33 @@ public class EdiToCsvServiceImpl implements EdiToCsvService {
     private static final Logger logger = LoggerFactory.getLogger(EdiToCsvServiceImpl.class);
 
     @Override
-    public File ediToCsv(MultipartFile ediFile, String fileType) throws IOException {
+    public File ediToCsv(MultipartFile ediFile) throws IOException {
         String name = "";
-        String receiverNumber = "";
-        File csvFile;
+        String receiverNumber;
+        String fileName  = "";
+        File csvFile = null;
+        CSVWriter csvWriter = null;
         String[] csvRow = new String[4];
         int count = 0;
-        char separator;
         logger.info("Start reading data from EDI file.");
         String content = new String(ediFile.getBytes());
         String[] lines = content.contains("~GS") ? content.split("~") : content.split("\n");
-        int i = 0;
-
-        if (fileType.equalsIgnoreCase("csv")) {
-            csvFile = new File("temp.csv");
-            separator = ',';
-        } else {
-            csvFile = new File("temp.tsv");
-            separator = '\t';
-        }
-        try (CSVWriter csvWriter = new CSVWriter(new FileWriter(csvFile),separator,CSVWriter.NO_QUOTE_CHARACTER,
-                CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END)) {
+        int i=0;
+        try {
             while (i < lines.length) {
                 if (count == 0) {
                     if (lines[i].startsWith("ISA")) {
                         String[] singleData = lines[i].split("\\*");
                         receiverNumber = singleData[8].trim();
                         count++;
+                        fileName = receiverNumber;
+
+                        String csvFileName = fileName + ".csv";
+                        csvFile = new File(csvFileName);
                         try {
+                            csvWriter = new CSVWriter(new FileWriter(csvFile));
                             String[] header = {"ProductCode", "ProductName", "Price", "Quantity"};
-                            logger.info("Start writing data into " + fileType + " file.");
+                            logger.info("Start writing data into CSV file.");
                             csvWriter.writeNext(header);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
@@ -79,23 +76,18 @@ public class EdiToCsvServiceImpl implements EdiToCsvService {
                 }
                 i++;
             }
-            logger.info("EDI file successfully converted into " + fileType + " file.");
+            logger.info("EDI file successfully converted into CSV file.");
+            String csvFileName = fileName + name + ".csv";
+            csvFile.renameTo(new File(csvFileName));
+            return csvFile;
         } catch (Exception e) {
             logger.error("Runtime error: {}",e.getMessage());
             throw new RuntimeException(e);
+        } finally {
+            if (csvWriter != null) {
+                csvWriter.flush();
+                csvWriter.close();
+            }
         }
-        String fileName = GetName(name, receiverNumber,fileType);
-        new File(String.valueOf(csvFile)).renameTo(new File(fileName));
-        return new File(fileName);
-    }
-
-    private static String GetName(String name, String receiverNumber, String fileType) {
-        String fileName;
-        if(!name.equalsIgnoreCase("")){
-            fileName = receiverNumber + "_" + name + "." + fileType;
-        } else {
-            fileName = receiverNumber + "." + fileType;
-        }
-        return fileName;
     }
 }

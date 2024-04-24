@@ -9,10 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -35,12 +32,12 @@ public class EdiToCsvController {
         }
         byte[] fileContent;
         try {
-            File csvFile = ediToCsvService.ediToCsv(ediFile);
+            File csvFile = ediToCsvService.ediToCsv(ediFile,"csv");
             if (csvFile != null) {
                 response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + csvFile.getName() + "\"");
                 fileContent = Files.readAllBytes(csvFile.toPath());
                 Files.deleteIfExists(csvFile.toPath());
-                logger.info("CSV file successfully send in response.");
+                logger.info("csv file successfully send in response.");
             } else {
                 logger.error("EDI file does not contain ISA header.");
                 return new ResponseEntity<>("EDI file must have ISA Header.", HttpStatus.BAD_REQUEST);
