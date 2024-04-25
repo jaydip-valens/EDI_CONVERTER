@@ -23,7 +23,7 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
     private static final Logger logger = LoggerFactory.getLogger(EdiToCSVServiceImplementation.class);
 
     @Override
-    public File ediToCSVConvertor(MultipartFile ediFile) {
+    public synchronized File ediToCSVConvertor(MultipartFile ediFile) {
         try {
             logger.info("Starting EDI to CSV conversion");
             validateFile(ediFile);

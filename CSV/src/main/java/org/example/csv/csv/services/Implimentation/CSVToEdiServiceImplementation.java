@@ -31,7 +31,7 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
     private static final Logger logger = LoggerFactory.getLogger(CSVToEdiServiceImplementation.class);
     private static final Random random = new Random();
 
-    public File csvToEdiConverter(MultipartFile csvFile) throws FileNotFoundException {
+    public synchronized File csvToEdiConverter(MultipartFile csvFile) throws FileNotFoundException {
         try {
             validateFile(csvFile);
             logger.info("Starting CSV to EDI conversion");
