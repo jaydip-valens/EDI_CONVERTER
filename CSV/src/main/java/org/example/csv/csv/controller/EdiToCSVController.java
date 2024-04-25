@@ -24,16 +24,14 @@ public class EdiToCSVController {
     private EdiToCSVServices ediToCSVServices;
 
     @GetMapping(value = "/edi846-to-csv", produces = "text/csv")
-    public ResponseEntity<Object> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile, HttpServletResponse response) throws IOException {
+    public synchronized ResponseEntity<byte []> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile) throws IOException {
         File responseFile = null;
         try {
             responseFile = ediToCSVServices.ediToCSVConvertor(ediFile);
             byte[] responseFileByte = Files.readAllBytes(responseFile.toPath());
-            response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + responseFile.getName() + "\"");
-            return ResponseEntity.status(HttpStatus.OK).body(responseFileByte);
+            return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + responseFile.getName() + "\"").body(responseFileByte);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } finally {
             if (responseFile != null) {
                 FileUtils.delete(responseFile);

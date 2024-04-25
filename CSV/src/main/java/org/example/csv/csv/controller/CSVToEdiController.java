@@ -24,17 +24,14 @@ public class CSVToEdiController {
     private CSVToEdiServices csvToEdiServices;
 
     @GetMapping(value = "/csv-to-edi846", produces = "text/edi")
-    public ResponseEntity<Object> csvToEdi(@RequestParam(value = "csvFile") MultipartFile csvFile, HttpServletResponse response) throws IOException {
+    public synchronized ResponseEntity<byte []> csvToEdi(@RequestParam(value = "csvFile") MultipartFile csvFile) throws IOException {
         File responseFile = null;
         try {
             responseFile = csvToEdiServices.csvToEdiConverter(csvFile);
             byte[] responseFileByte = Files.readAllBytes(responseFile.toPath());
-            response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + responseFile.getName() + "\"");
-            FileUtils.delete(new File(csvFile.getOriginalFilename()));
-            return ResponseEntity.status(HttpStatus.OK).body(responseFileByte);
+            return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + responseFile.getName() + "\"").body(responseFileByte);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } finally {
             if (responseFile != null) {
                 FileUtils.delete(responseFile);
