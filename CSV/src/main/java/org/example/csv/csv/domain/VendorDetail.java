@@ -65,4 +65,13 @@ public class VendorDetail {
         this.dataMapping = dataMapping;
     }
 
+    @Override
+    public String toString() {
+        return "VendorDetail{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", dataSetting=" + dataSetting +
+                ", dataMapping=" + dataMapping +
+                '}';
+    }
 }

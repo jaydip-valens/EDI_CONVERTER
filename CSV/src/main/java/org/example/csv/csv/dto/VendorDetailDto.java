@@ -1,6 +1,5 @@
 package org.example.csv.csv.dto;
 
-import java.io.Serializable;
 import java.util.Map;
 
 public class VendorDetailDto  {

@@ -24,4 +24,18 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-vendor-inventory-table" author="">
+        <createTable tableName="vendor_inventory">
+            <column name="sku" type="varchar"/>
+            <column name="vendor_id" type="int"/>
+            <column name="quantity" type="int"/>
+            <column name="unit_cost" type="int"/>
+            <column name="product_title" type="varchar"/>
+            <column name="upc" type="varchar"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="vendor_inventory" baseColumnNames="vendor_id"
+                                 constraintName="inventory_table"
+                                 referencedTableName="vendor_details"
+                                 referencedColumnNames="id"/>
+    </changeSet>
 </databaseChangeLog>
