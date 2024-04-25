@@ -23,11 +23,12 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
     private static final Logger logger = LoggerFactory.getLogger(EdiToCSVServiceImplementation.class);
 
     @Override
-    public synchronized File ediToCSVConvertor(MultipartFile ediFile) {
+    public File ediToCSVConvertor(MultipartFile ediFile) {
         try {
             logger.info("Starting EDI to CSV conversion");
             validateFile(ediFile);
             String content = new String(ediFile.getBytes());
+            System.out.println(content);
             String[] contentList = content.contains("~GS") ? content.split("~") : content.split("\n");
             String receiverId = "";
             String vendorName = "";

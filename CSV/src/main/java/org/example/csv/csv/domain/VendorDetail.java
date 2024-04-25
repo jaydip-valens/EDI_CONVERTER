@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -23,9 +22,6 @@ public class VendorDetail {
     @Column(name = "data_mapping", nullable = false, columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> dataMapping;
-
-    @OneToMany(mappedBy = "vendor")
-    private List<VendorInventory> vendorInventory;
 
     public VendorDetail() {
     }
@@ -69,21 +65,4 @@ public class VendorDetail {
         this.dataMapping = dataMapping;
     }
 
-    public List<VendorInventory> getVendorInventory() {
-        return vendorInventory;
-    }
-
-    public void setVendorInventory(List<VendorInventory> vendorInventory) {
-        this.vendorInventory = vendorInventory;
-    }
-
-    @Override
-    public String toString() {
-        return "VendorDetail{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", dataSetting=" + dataSetting +
-                ", dataMapping=" + dataMapping +
-                '}';
-    }
 }
