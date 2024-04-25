@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class VendorDetailServicesImplementation implements VendorDetailServices {
@@ -21,9 +22,14 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
     private VendorDetailRepository vendorDetailRepository;
 
     @Override
-    public void addVendorDetail(VendorDetailDto vendorDetailDto) {
+    public String addVendorDetail(VendorDetailDto vendorDetailDto) {
         try {
-            vendorDetailRepository.save(objectMapper.convertValue(vendorDetailDto, VendorDetail.class));
+            System.out.println(vendorDetailDto.getDataSetting().containsKey("segment_delimiter"));
+            if (!vendorDetailDto.getDataSetting().containsKey("segment_delimiter") || !vendorDetailDto.getDataMapping().containsKey("vendor_sku") || !vendorDetailDto.getDataMapping().containsKey("quantity")) {
+                return "Invalid Value Passed";
+            }
+            vendorDetailRepository.save(DtoToEntity(vendorDetailDto));
+            return "Added";
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -32,7 +38,7 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
     @Override
     public List<VendorDetailDto> getAllVendorDetails() {
         try {
-            return objectMapper.convertValue(vendorDetailRepository.findAll(), new TypeReference<>() {});
+            return vendorDetailRepository.findAll().stream().map(this::EntityToDto).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -42,7 +48,7 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
     public VendorDetailDto getVendorDetailById(int id) {
         try {
             Optional<VendorDetail> optionalVendorDetail = vendorDetailRepository.findById(id);
-            return optionalVendorDetail.map(vendorDetail -> objectMapper.convertValue(vendorDetail, VendorDetailDto.class)).orElse(null);
+            return optionalVendorDetail.map(this::EntityToDto).orElse(null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -59,5 +65,24 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public String updateVendorDetailById(int id, VendorDetailDto vendorDetailDto) {
+        if (vendorDetailRepository.existsById(id)) {
+            VendorDetail vendorDetail = DtoToEntity(vendorDetailDto);
+            vendorDetail.setId(id);
+            vendorDetailRepository.save(vendorDetail);
+            return "Updated";
+        }
+        return "Invalid id";
+    }
+
+    public VendorDetailDto EntityToDto(VendorDetail vendorDetail) {
+        return new VendorDetailDto(vendorDetail.getId(), vendorDetail.getName(), vendorDetail.getDataSetting(), vendorDetail.getDataMapping());
+    }
+
+    public VendorDetail DtoToEntity(VendorDetailDto vendorDetailDto) {
+        return new VendorDetail(vendorDetailDto.getId(), vendorDetailDto.getName(), vendorDetailDto.getDataSetting(), vendorDetailDto.getDataMapping());
     }
 }

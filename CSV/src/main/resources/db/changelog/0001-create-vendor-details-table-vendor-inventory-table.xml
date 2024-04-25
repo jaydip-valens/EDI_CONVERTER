@@ -8,6 +8,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    
     <changeSet id="create-vendor-details-table" author="Jaydip">
         <createTable tableName="vendor_details">
             <column autoIncrement="true" name="id" type="INT">
@@ -23,5 +24,20 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+    </changeSet>
+    
+    <changeSet id="create-vendor-inventory-table" author="">
+        <createTable tableName="vendor_inventory">
+            <column name="sku" type="varchar"/>
+            <column name="vendor_id" type="int"/>
+            <column name="quantity" type="int"/>
+            <column name="unit_cost" type="int"/>
+            <column name="product_title" type="varchar"/>
+            <column name="upc" type="varchar"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="vendor_inventory" baseColumnNames="vendor_id"
+                                 constraintName="inventory_table"
+                                 referencedTableName="vendor_details"
+                                 referencedColumnNames="id"/>
     </changeSet>
 </databaseChangeLog>

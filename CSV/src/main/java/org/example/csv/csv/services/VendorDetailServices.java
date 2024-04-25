@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface VendorDetailServices {
 
-    void addVendorDetail(VendorDetailDto vendorDetailDto);
+    String addVendorDetail(VendorDetailDto vendorDetailDto);
 
     List<VendorDetailDto> getAllVendorDetails();
 
@@ -14,4 +14,5 @@ public interface VendorDetailServices {
 
     String deleteVendorDetailById(int id);
 
+    String updateVendorDetailById(int id, VendorDetailDto vendorDetailDto);
 }
