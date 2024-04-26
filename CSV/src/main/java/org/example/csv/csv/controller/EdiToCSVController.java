@@ -19,10 +19,10 @@ public class EdiToCSVController {
     private EdiToCSVServices ediToCSVServices;
 
     @GetMapping(value = "/edi846-to-csv", produces = "text/csv")
-    public ResponseEntity<byte []> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile) {
+    public ResponseEntity<String> ediToCsv(@RequestParam(value = "ediFile") MultipartFile ediFile) {
         try {
-            Map<String, byte[]> resultMap = ediToCSVServices.ediToCSVConvertor(ediFile);
-            return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + new String(resultMap.get("fileName")) + "\"").body(resultMap.get("bytes"));
+            Map<String, String> resultMap = ediToCSVServices.ediToCSVConvertor(ediFile);
+            return ResponseEntity.status(HttpStatus.OK).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resultMap.get("fileName") + "\"").body(resultMap.get("result"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

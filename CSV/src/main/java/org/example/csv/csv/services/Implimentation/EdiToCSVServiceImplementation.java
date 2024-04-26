@@ -1,7 +1,5 @@
 package org.example.csv.csv.services.Implimentation;
 
-import com.opencsv.CSVWriter;
-import org.apache.commons.io.FileUtils;
 import org.example.csv.csv.exceptionHandler.InvalidFileException;
 import org.example.csv.csv.services.EdiToCSVServices;
 import org.slf4j.Logger;
@@ -9,11 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 import static org.example.csv.csv.utils.Util.validateFile;
@@ -22,21 +15,20 @@ import static org.example.csv.csv.utils.Util.validateFile;
 public class EdiToCSVServiceImplementation implements EdiToCSVServices {
 
     private static final Logger logger = LoggerFactory.getLogger(EdiToCSVServiceImplementation.class);
-    private static final Random random = new Random(100000000000000000L);
     @Override
-    public Map<String, byte[]> ediToCSVConvertor(MultipartFile ediFile) throws IOException {
-        long randomVal = random.nextLong();
+    public Map<String, String> ediToCSVConvertor(MultipartFile ediFile) {
         try {
             logger.info("Starting EDI to CSV conversion");
             validateFile(ediFile);
             String content = new String(ediFile.getBytes());
-            String[] contentList = content.contains("~GS") ? content.split("~") : content.split("\n");
+            String[] contentList = content.contains("~GS") ? content.split("~") : content.contains("~\nGS") ? content.replace("~","").split("\n") : content.split("\n") ;
             String receiverId = "";
             String vendorName = "";
             String fileName = "";
-            List<String> headerSet = new ArrayList<>();
+            StringBuilder stringBuilder = new StringBuilder();
+            LinkedHashSet<String> headerSet = new LinkedHashSet<>();
             List<String> tempCsvDataList = new ArrayList<>();
-            try (CSVWriter writer = new CSVWriter(new FileWriter(randomVal + ".csv"))) {
+            try {
                 for (String data : contentList) {
                     if (data.startsWith("ISA*")) {
                         receiverId = data.split("\\*")[8].trim();
@@ -44,16 +36,11 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
                         String[] temp = data.split("\\*");
                         vendorName = temp[temp.length - 1].replace(" ", "_").replaceAll("[^a-zA-Z0-9_]", "");
                     } else if (data.startsWith("LIN*")) {
-                        if (!headerSet.isEmpty() && headerSet.size() == tempCsvDataList.size()) {
-                            writer.writeNext(headerSet.toArray(new String[0]));
-                            writer.writeNext(tempCsvDataList.toArray(new String[0]));
-                            tempCsvDataList.clear();
-                        }
                         if (!tempCsvDataList.isEmpty()) {
-                            writer.writeNext(tempCsvDataList.toArray(new String[0]));
+                            stringBuilder.append(String.join(",", tempCsvDataList)).append("\n");
                             tempCsvDataList.clear();
                         }
-                        headerSet.add("vendor");
+                        headerSet.add("Vendor");
                         String[] temp = data.split("\\*");
                         tempCsvDataList.add(temp[temp.length - 1]);
                     } else if (data.startsWith("PID*F*08")) {
@@ -70,24 +57,17 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
                         tempCsvDataList.add(temp[temp.length - 2]);
                     }
                 }
-                long linCount = Arrays.stream(contentList).filter(x -> x.startsWith("LIN*")).count();
-                if (linCount == 1) {
-                    writer.writeNext(headerSet.toArray(new String[0]));
-                }
-                if (!tempCsvDataList.isEmpty()) {
-                    writer.writeNext(tempCsvDataList.toArray(new String[0]));
-                    headerSet.clear();
-                    tempCsvDataList.clear();
-                }
             } catch (Exception e) {
                 logger.error("Error occurred during EDI to CSV conversion.", e);
                 throw new RuntimeException(e);
             }
             fileName = getFileName(receiverId, vendorName, fileName);
             logger.info("EDI to CSV conversion completed successfully.");
-            Map<String, byte[]> resultMap = new HashMap<>();
-            resultMap.put("bytes", Files.readAllBytes(Path.of(randomVal + ".csv")));
-            resultMap.put("fileName", fileName.getBytes());
+            stringBuilder.append(String.join(",", tempCsvDataList)).append("\n");
+            stringBuilder.insert(0,String.join(",", headerSet)+"\n");
+            Map<String, String> resultMap = new HashMap<>();
+            resultMap.put("result",stringBuilder.toString());
+            resultMap.put("fileName",fileName);
             return resultMap;
         } catch (InvalidFileException e) {
             logger.error("Invalid file encountered during EDI to CSV conversion.", e);
@@ -95,8 +75,6 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
         } catch (Exception e) {
             logger.error("Error occurred during EDI to CSV conversion.", e);
             throw new RuntimeException(e);
-        } finally {
-            FileUtils.delete(new File(randomVal + ".csv"));
         }
     }
     private static String getFileName(String receiverId, String vendorName, String fileName) {

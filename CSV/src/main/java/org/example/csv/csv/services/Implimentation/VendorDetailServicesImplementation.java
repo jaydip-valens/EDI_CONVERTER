@@ -1,10 +1,7 @@
 package org.example.csv.csv.services.Implimentation;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.csv.csv.domain.VendorDetail;
 import org.example.csv.csv.dto.VendorDetailDto;
-import org.example.csv.csv.exceptionHandler.InvalidArgumentException;
 import org.example.csv.csv.repository.VendorDetailRepository;
 import org.example.csv.csv.services.VendorDetailServices;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +21,6 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
     @Override
     public void addVendorDetail(VendorDetailDto vendorDetailDto) {
         try {
-            if (!vendorDetailDto.getDataSetting().containsKey("segment_delimiter")) {
-                if (!vendorDetailDto.getDataMapping().keySet().containsAll(new ArrayList<>(List.of(new String[]{"quantity", "vendor_sku"})))) {
-                    if (!vendorDetailDto.getDataMapping().values().stream().allMatch(data -> data.contains("-"))) {
-                        throw new InvalidArgumentException();
-                    }
-                }
-            }
             vendorDetailRepository.save(DtoToEntity(vendorDetailDto));
         } catch (Exception e) {
             throw new RuntimeException(e);
