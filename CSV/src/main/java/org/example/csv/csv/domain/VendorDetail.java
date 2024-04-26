@@ -17,16 +17,16 @@ public class VendorDetail {
 
     @Column(name = "data_setting", nullable = false, columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
-    private Map<String, Object> dataSetting;
+    private Map<String, String> dataSetting;
 
     @Column(name = "data_mapping", nullable = false, columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
-    private Map<String, Object> dataMapping;
+    private Map<String, String> dataMapping;
 
     public VendorDetail() {
     }
 
-    public VendorDetail(Integer id, String name, Map<String, Object> dataSetting, Map<String, Object> dataMapping) {
+    public VendorDetail(Integer id, String name, Map<String, String> dataSetting, Map<String, String> dataMapping) {
         this.id = id;
         this.name = name;
         this.dataSetting = dataSetting;
@@ -49,19 +49,19 @@ public class VendorDetail {
         this.name = name;
     }
 
-    public Map<String, Object> getDataSetting() {
+    public Map<String, String> getDataSetting() {
         return dataSetting;
     }
 
-    public void setDataSetting(Map<String, Object> dataSetting) {
+    public void setDataSetting(Map<String, String> dataSetting) {
         this.dataSetting = dataSetting;
     }
 
-    public Map<String, Object> getDataMapping() {
+    public Map<String, String> getDataMapping() {
         return dataMapping;
     }
 
-    public void setDataMapping(Map<String, Object> dataMapping) {
+    public void setDataMapping(Map<String, String> dataMapping) {
         this.dataMapping = dataMapping;
     }
 

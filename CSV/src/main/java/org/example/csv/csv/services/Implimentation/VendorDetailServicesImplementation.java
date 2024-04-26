@@ -4,18 +4,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.csv.csv.domain.VendorDetail;
 import org.example.csv.csv.dto.VendorDetailDto;
+import org.example.csv.csv.exceptionHandler.InvalidArgumentException;
 import org.example.csv.csv.repository.VendorDetailRepository;
 import org.example.csv.csv.services.VendorDetailServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class VendorDetailServicesImplementation implements VendorDetailServices {
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private VendorDetailRepository vendorDetailRepository;
@@ -23,7 +24,14 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
     @Override
     public void addVendorDetail(VendorDetailDto vendorDetailDto) {
         try {
-            vendorDetailRepository.save(objectMapper.convertValue(vendorDetailDto, VendorDetail.class));
+            if (!vendorDetailDto.getDataSetting().containsKey("segment_delimiter")) {
+                if (!vendorDetailDto.getDataMapping().keySet().containsAll(new ArrayList<>(List.of(new String[]{"quantity", "vendor_sku"})))) {
+                    if (!vendorDetailDto.getDataMapping().values().stream().allMatch(data -> data.contains("-"))) {
+                        throw new InvalidArgumentException();
+                    }
+                }
+            }
+            vendorDetailRepository.save(DtoToEntity(vendorDetailDto));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -32,7 +40,7 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
     @Override
     public List<VendorDetailDto> getAllVendorDetails() {
         try {
-            return objectMapper.convertValue(vendorDetailRepository.findAll(), new TypeReference<>() {});
+            return vendorDetailRepository.findAll().stream().map(this::EntityToDto).collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -42,7 +50,7 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
     public VendorDetailDto getVendorDetailById(int id) {
         try {
             Optional<VendorDetail> optionalVendorDetail = vendorDetailRepository.findById(id);
-            return optionalVendorDetail.map(vendorDetail -> objectMapper.convertValue(vendorDetail, VendorDetailDto.class)).orElse(null);
+            return optionalVendorDetail.map(this::EntityToDto).orElse(null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -59,5 +67,14 @@ public class VendorDetailServicesImplementation implements VendorDetailServices 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    private VendorDetail DtoToEntity(VendorDetailDto vendorDetailDto) {
+        return new VendorDetail(vendorDetailDto.getId(), vendorDetailDto.getName(), vendorDetailDto.getDataSetting(), vendorDetailDto.getDataMapping());
+    }
+
+    private VendorDetailDto EntityToDto(VendorDetail vendorDetail) {
+        return new VendorDetailDto(vendorDetail.getId(), vendorDetail.getName(), vendorDetail.getDataSetting(),vendorDetail.getDataMapping());
     }
 }

@@ -7,13 +7,13 @@ public class VendorDetailDto  {
 
     private String name;
 
-    private Map<String, Object> dataSetting;
-    private Map<String, Object> dataMapping;
+    private Map<String, String> dataSetting;
+    private Map<String, String> dataMapping;
 
     public VendorDetailDto() {
     }
 
-    public VendorDetailDto(Integer id, String name, Map<String, Object> dataSetting, Map<String, Object> dataMapping) {
+    public VendorDetailDto(Integer id, String name, Map<String, String> dataSetting, Map<String, String> dataMapping) {
         this.id = id;
         this.name = name;
         this.dataSetting = dataSetting;
@@ -32,19 +32,19 @@ public class VendorDetailDto  {
         this.name = name;
     }
 
-    public Map<String, Object> getDataSetting() {
+    public Map<String, String> getDataSetting() {
         return dataSetting;
     }
 
-    public void setDataSetting(Map<String, Object> dataSetting) {
+    public void setDataSetting(Map<String, String> dataSetting) {
         this.dataSetting = dataSetting;
     }
 
-    public Map<String, Object> getDataMapping() {
+    public Map<String, String> getDataMapping() {
         return dataMapping;
     }
 
-    public void setDataMapping(Map<String, Object> dataMapping) {
+    public void setDataMapping(Map<String, String> dataMapping) {
         this.dataMapping = dataMapping;
     }
 
