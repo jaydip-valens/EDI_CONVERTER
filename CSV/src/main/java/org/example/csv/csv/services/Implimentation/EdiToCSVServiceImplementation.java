@@ -1,5 +1,6 @@
 package org.example.csv.csv.services.Implimentation;
 
+import org.example.csv.csv.exceptionHandler.InvalidDataException;
 import org.example.csv.csv.exceptionHandler.InvalidFileException;
 import org.example.csv.csv.services.EdiToCSVServices;
 import org.slf4j.Logger;
@@ -21,53 +22,56 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
             logger.info("Starting EDI to CSV conversion");
             validateFile(ediFile);
             String content = new String(ediFile.getBytes());
-            String[] contentList = content.contains("~GS") ? content.split("~") : content.contains("~\nGS") ? content.replace("~","").split("\n") : content.split("\n") ;
+            String[] contentList = content.contains("~GS") ? content.split("~") : content.contains("~\nGS") ? content.replace("~", "").split("\n") : content.split("\n");
+            StringBuilder stringBuilder = new StringBuilder();
+            Set<String> headers = new LinkedHashSet<>(Arrays.asList("Vendor", "Product Name", "Cost", "Quantity"));
+            String[] tempData = null;
             String receiverId = "";
             String vendorName = "";
-            String fileName = "";
-            StringBuilder stringBuilder = new StringBuilder();
-            LinkedHashSet<String> headerSet = new LinkedHashSet<>();
-            List<String> tempCsvDataList = new ArrayList<>();
-            try {
-                for (String data : contentList) {
-                    if (data.startsWith("ISA*")) {
-                        receiverId = data.split("\\*")[8].trim();
-                    } else if (data.startsWith("N1*")) {
-                        String[] temp = data.split("\\*");
-                        vendorName = temp[temp.length - 1].replace(" ", "_").replaceAll("[^a-zA-Z0-9_]", "");
-                    } else if (data.startsWith("LIN*")) {
-                        if (!tempCsvDataList.isEmpty()) {
-                            stringBuilder.append(String.join(",", tempCsvDataList)).append("\n");
-                            tempCsvDataList.clear();
+            stringBuilder.append(headers);
+            for (String segment : contentList) {
+                String[] segmentData = segment.split("\\*");
+                String segmentId = segmentData[0];
+                switch (segmentId) {
+                    case "ISA":
+                        receiverId = segmentData[8].trim();
+                        break;
+                    case "N1":
+                        vendorName = segmentData[segmentData.length - 1].trim().replaceAll("[^a-zA-Z0-9_]", "");
+                        break;
+                    case "LIN":
+                        if (tempData != null) {
+                            tempData = Arrays.stream(tempData).map(x -> x == null ? "" : x).toArray(String[]::new);
+                            stringBuilder.append(String.join(",", tempData));
+                            stringBuilder.append("\n");
                         }
-                        headerSet.add("Vendor");
-                        String[] temp = data.split("\\*");
-                        tempCsvDataList.add(temp[temp.length - 1]);
-                    } else if (data.startsWith("PID*F*08")) {
-                        headerSet.add("Product Name");
-                        String[] temp = data.split("\\*");
-                        tempCsvDataList.add(temp[temp.length - 1].trim());
-                    } else if (data.startsWith("CTP*")) {
-                        headerSet.add("Cost");
-                        String[] temp = data.split("\\*");
-                        tempCsvDataList.add(temp.length < 4 ? "" : temp[temp.length - 1]);
-                    } else if (data.startsWith("QTY*")) {
-                        headerSet.add("Quantity");
-                        String[] temp = data.split("\\*");
-                        tempCsvDataList.add(temp[temp.length - 2]);
-                    }
+                        tempData = new String[4];
+                        tempData[0] = segmentData[segmentData.length - 1];
+                        break;
+                    case "PID":
+                        if (tempData == null) throw new InvalidDataException();
+                        if (segment.contains("*08")) {
+                            tempData[1] = segmentData[segmentData.length - 1].trim();
+                        }
+                        break;
+                    case "CTP":
+                        if (tempData == null) throw new InvalidDataException();
+                        tempData[2] = segmentData.length > 3 ? segmentData[3].trim() : "";
+                        break;
+                    case "QTY":
+                        if (tempData == null) throw new InvalidDataException();
+                        tempData[3] = segmentData[2].trim();
+                        break;
+                    default:
+                        break;
                 }
-            } catch (Exception e) {
-                logger.error("Error occurred during EDI to CSV conversion.", e);
-                throw new RuntimeException(e);
             }
-            fileName = getFileName(receiverId, vendorName, fileName);
+            stringBuilder.append(String.join(",", tempData));
+            String fileName = getFileName(receiverId, vendorName);
             logger.info("EDI to CSV conversion completed successfully.");
-            stringBuilder.append(String.join(",", tempCsvDataList)).append("\n");
-            stringBuilder.insert(0,String.join(",", headerSet)+"\n");
             Map<String, String> resultMap = new HashMap<>();
-            resultMap.put("result",stringBuilder.toString());
-            resultMap.put("fileName",fileName);
+            resultMap.put("result", stringBuilder.toString());
+            resultMap.put("fileName", fileName);
             return resultMap;
         } catch (InvalidFileException e) {
             logger.error("Invalid file encountered during EDI to CSV conversion.", e);
@@ -77,7 +81,9 @@ public class EdiToCSVServiceImplementation implements EdiToCSVServices {
             throw new RuntimeException(e);
         }
     }
-    private static String getFileName(String receiverId, String vendorName, String fileName) {
+
+    private static String getFileName(String receiverId, String vendorName) {
+        String fileName = null;
         if (!receiverId.isBlank()) {
             if (!vendorName.isBlank()) {
                 fileName = receiverId + "_" + vendorName + ".csv";

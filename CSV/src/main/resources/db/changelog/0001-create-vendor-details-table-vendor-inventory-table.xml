@@ -10,10 +10,10 @@
         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
     <changeSet id="create-vendor-details-table" author="Jaydip">
         <createTable tableName="vendor_details">
-            <column autoIncrement="true" name="id" type="INT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_vendordetails"/>
+            <column autoIncrement="true" name="id" type="int">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_vendor_details"/>
             </column>
-            <column name="name" type="varchar">
+            <column name="name" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="data_setting" type="jsonb">
@@ -23,14 +23,13 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-    <changeSet id="create-vendor-inventory-table" author="">
+
         <createTable tableName="vendor_inventory">
-            <column name="sku" type="varchar"/>
+            <column name="sku" type="varchar(255)"/>
             <column name="vendor_id" type="int"/>
             <column name="quantity" type="int"/>
-            <column name="unit_cost" type="int"/>
-            <column name="product_title" type="varchar"/>
+            <column name="unit_cost" type="decimal"/>
+            <column name="product_title" type="varchar(255)"/>
             <column name="upc" type="varchar"/>
         </createTable>
         <addForeignKeyConstraint baseTableName="vendor_inventory" baseColumnNames="vendor_id"

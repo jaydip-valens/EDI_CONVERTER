@@ -12,4 +12,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> invalidFileException() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid File Passed");
     }
+    @ExceptionHandler(InvalidDataException.class)
+    public ResponseEntity<String> invalidDataException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Data Passed");
+    }
 }

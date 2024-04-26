@@ -58,10 +58,14 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
                         linSegmentWriter(data, segmentData, randomValue, segmentNames, stringBuilder);
                     }
                     if (segmentNames.contains("Product Name")) {
-                        segmentCount = pidSegmentWriter(data, segmentData, segmentNames, segmentCount, stringBuilder);
+                        if (!data[segmentNames.indexOf("Product Name")].isEmpty()) {
+                            segmentCount = pidSegmentWriter(data, segmentData, segmentNames, segmentCount, stringBuilder);
+                        }
                     }
                     if (segmentNames.contains("Cost")) {
-                        segmentCount = ctpSegmentWriter(data, segmentData, segmentNames, segmentCount, stringBuilder);
+                        if (!data[segmentNames.indexOf("Cost")].isEmpty()) {
+                            segmentCount = ctpSegmentWriter(data, segmentData, segmentNames, segmentCount, stringBuilder);
+                        }
                     }
                     if (segmentNames.contains("Quantity")) {
                         segmentCount = qtySegmentWriter(data, segmentData, segmentNames, segmentCount, stringBuilder);
@@ -77,7 +81,7 @@ public class CSVToEdiServiceImplementation implements CSVToEdiServices {
                 throw new RuntimeException(e);
             }
             logger.info("CSV to EDI conversion completed successfully.");
-            Map<String , String> resultMap = new HashMap<>();
+            Map<String, String> resultMap = new HashMap<>();
             resultMap.put("data" , stringBuilder.toString());
             resultMap.put("fileName", fileName);
             return resultMap;
