@@ -17,7 +17,7 @@ public class VendorInventory {
 
     private Integer quantity;
 
-    private Integer unitCost;
+    private Double unitCost;
 
     private String productTitle;
 
@@ -47,11 +47,11 @@ public class VendorInventory {
         this.quantity = quantity;
     }
 
-    public Integer getUnitCost() {
+    public Double getUnitCost() {
         return unitCost;
     }
 
-    public void setUnitCost(Integer unitCost) {
+    public void setUnitCost(Double unitCost) {
         this.unitCost = unitCost;
     }
 
